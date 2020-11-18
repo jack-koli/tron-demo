@@ -68,7 +68,7 @@ func UpdateAccount(ownerKey *ecdsa.PrivateKey, accountName string) (rtn *api.Ret
 		err = fmt.Errorf("can not create update transaction: %s", extension.String())
 		return
 	}
-	err = SignTransaction(accountUpdateTransaction, ownerKey)
+	_, err = SignTransaction(accountUpdateTransaction, ownerKey)
 	if err != nil {
 		return
 	}

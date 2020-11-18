@@ -102,7 +102,7 @@ func PubkeyToAddress(p ecdsa.PublicKey) []byte {
 	return addressTron
 }
 
-func SignTransaction(transaction *core.Transaction, key *ecdsa.PrivateKey) (err error) {
+func SignTransaction(transaction *core.Transaction, key *ecdsa.PrivateKey) (hash []byte,err error) {
 	transaction.GetRawData().Timestamp = time.Now().UnixNano() / 1000000
 	rawData, err := proto.Marshal(transaction.GetRawData())
 
@@ -112,14 +112,14 @@ func SignTransaction(transaction *core.Transaction, key *ecdsa.PrivateKey) (err 
 
 	h256h := sha256.New()
 	h256h.Write(rawData)
-	hash := h256h.Sum(nil)
+	hash = h256h.Sum(nil)
 
 	contractList := transaction.GetRawData().GetContract()
 
 	for range contractList {
 		signature, err := crypto.Sign(hash, key)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		transaction.Signature = append(transaction.Signature, signature)
 	}
