@@ -2,29 +2,44 @@ package account
 
 import (
 	"context"
+	"github.com/jack-koli/tron-protocol/api"
 	"github.com/jack-koli/tron-protocol/core"
 	"github.com/mr-tron/base58"
 	log "github.com/sirupsen/logrus"
-	"github.com/jack-koli/tron-protocol/api"
 	"google.golang.org/grpc"
 )
 
 var (
+	conn *grpc.ClientConn
 	walletClient api.WalletClient
-	networkClient api.NetworkClient
+	databaseClient api.DatabaseClient
 )
 
 func init()  {
 	log.Info("account.Init")
-	conn, err := grpc.Dial("grpc.shasta.trongrid.io:50051", grpc.WithInsecure())
+	//rpcHost 正式 grpc.trongrid.io:50051
+	// 测试
+	//rpcHost := "grpc.shasta.trongrid.io:50051"
+	rpcHost := "192.168.8.240:50051"
+	var err error
+	conn, err = grpc.Dial(rpcHost, grpc.WithInsecure())
 	if err != nil {
+		log.Errorf("can not grpc.Dial %v", err)
 		return
 	}
 
 	walletClient = api.NewWalletClient(conn)
-	networkClient = api.NewNetworkClient(conn)
 
+	databaseClient = api.NewDatabaseClient(conn)
 }
+
+func ListWitnesses() (*api.WitnessList, error) {
+	witnessList, err := walletClient.ListWitnesses(context.Background(), new(api.EmptyMessage))
+
+	return witnessList, err
+}
+
+
 
 func NodeInfo()  {
 	info, err := walletClient.GetNodeInfo(context.Background(), new(api.EmptyMessage))
@@ -37,6 +52,7 @@ func NodeInfo()  {
 }
 
 func Info(addr string) (err error) {
+
 	acc := new(core.Account)
 	acc.Address, err = base58.Decode(addr)
 	if err != nil {
@@ -44,6 +60,7 @@ func Info(addr string) (err error) {
 	}
 
 
+	//databaseClient.GetBlockByNum()
 
 	_, err = walletClient.GetAccount(context.Background(), acc)
 	if err != nil {
